@@ -1,67 +1,113 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import Multiselect from 'multiselect-react-dropdown';
+import Select from 'react-select';
+import chroma from 'chroma-js';
 import "./App.css";
 
 function App() {
-    const [greetMsg, setGreetMsg] = useState("");
+    const [devices, setDevices] = useState([]);
     const [name, setName] = useState("");
+    const [optionsList, setOptionsList] = useState([]);
 
-    async function greet() {
+
+    async function get_usb() {
         // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-        setGreetMsg(await invoke("greet", { name }));
+        let devices = await invoke("get_usb", { name });
+        let deviceOptions = [];
+        for (let i = 0; i < devices.length; i++) {
+            deviceOptions.push({ label: devices[i], value: i });
+        }
+        setDevices(deviceOptions);
+        setName("");
     }
 
     async function onSelect(selectedList, selectedItem) {
-        console.log(selectedList, selectedItem.name);
-        await invoke("multiselect", { options: selectedList});
+        let list = selectedList.map((item) => item.name);
+        setOptionsList(list);
+        console.log(optionsList);
     }
 
 
     const state = {
-        options: [{name: 'Option 1', id: 1},{name: 'Option 2', id: 2}]
+        options: [{label: 'Ventoy', value: 1},{label: 'Storage', value: 2}, {label: "Encrypted Vault", value: 3}, {label: "Persistent Vol OS", value: 4}],
     };
+
+    useEffect(() => {
+        get_usb();
+    }, []);
+
 
     return (
         <main className="container">
-            <h1>Welcome to Tauri + React</h1>
-
-            <div className="row">
-                <a href="https://vitejs.dev" target="_blank">
-                    <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-                </a>
-                <a href="https://tauri.app" target="_blank">
-                    <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-                </a>
-                <a href="https://reactjs.org" target="_blank">
-                    <img src={reactLogo} className="logo react" alt="React logo" />
-                </a>
-            </div>
-            <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+            <h1>Swiss Army USB Flasher</h1>
 
             <form
-                className="row"
+                className="col"
                 onSubmit={(e) => {
                     e.preventDefault();
-                    greet();
+                    get_usb();
                 }}
             >
-                <input
-                    id="greet-input"
-                    onChange={(e) => setName(e.currentTarget.value)}
-                    placeholder="Enter a name..."
+                <p>Available USB Devices</p>
+                <div className="row">
+                    <Select
+                        options={devices}
+                        value="hehe"
+                        onChange={(e) => setName(e.label)}
+
+                        styles={{ //change font color to black
+                        option: (styles) => {
+                            return {
+                                ...styles,
+                                color: 'black',
+                            };
+                        },
+                    }}
+
+                    />
+                    <button onClick={get_usb}>Refresh</button>
+
+                </div>
+
+                <p>Select Primary Features</p>
+                <Select
+                    isMulti
+                    options={state.options}
+                    onChange={onSelect}
+                    className="basic-multi-select"
+                    classNamePrefix="select"
+                    styles={{ //change font color to black
+                        option: (styles) => {
+                            return {
+                                ...styles,
+                                color: 'black',
+                            };
+                        },
+                    }}
                 />
-                <button type="submit">Greet</button>
+
+                {optionsList.find((element) => element === "Encrypted Vault") && (
+                    <div>
+                        <input type="text" placeholder="Enter Password" />
+                    </div>
+                )}
+                <button type="submit">Flash</button>
             </form>
-            <Multiselect
-                options={state.options} // Options to display in the dropdown
-                selectedValues={state.selectedValue} // Preselected value to persist in dropdown
-                onSelect={onSelect} // Function will trigger on select event
-                // onRemove={this.onRemove} // Function will trigger on remove event
-                displayValue="name" // Property name to display in the dropdown options
-            />
-            <p>{greetMsg}</p>
+            <p>{optionsList}</p>
+            {/* Conditionally render the element */}
+            {optionsList.length > 0 && (
+                <div className="selected-options">
+                    <h2>Selected Features:</h2>
+                    <ul>
+                        {optionsList.map((option) => (
+                            <li>{option}hi</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+            <p>{name}</p>
         </main>
     );
 }

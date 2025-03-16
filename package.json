@@ -10,12 +10,14 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2",
+    "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/plugin-log": "~2",
     "@tauri-apps/plugin-shell": "^2",
+    "chroma-js": "^3.1.2",
     "multiselect-react-dropdown": "^2.0.25",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-select": "^5.8.3"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
